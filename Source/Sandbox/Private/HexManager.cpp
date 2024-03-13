@@ -3,20 +3,36 @@
 
 #include "HexManager.h"
 #include "HexTile.h"
+#include "DrawDebugHelpers.h"
 
 AHexManager::AHexManager()
 {
-	PrimaryActorTick.bCanEverTick = true;
-
-	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
 	//TileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TileMesh"));
 	//TileMesh->SetupAttachment(RootComponent);
+
+	PrimaryActorTick.bCanEverTick = true;
+	bRunConstructionScriptOnDrag = false;
+
+	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
+	WaterMeshComp = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("WaterMeshComp"));
+	WaterMeshComp->SetupAttachment(RootComponent);
+	GrassMeshComp = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("GrassMeshComp"));
+	GrassMeshComp->SetupAttachment(RootComponent);
+	DestroyTiles();
+
+	Settings = GetMutableDefault<UHexGridSettings>();
+	check(Settings);
 }
 
 void AHexManager::BeginPlay()
 {
 	Super::BeginPlay();
-	
+}
+
+void AHexManager::OnConstruction(const FTransform& Transform)
+{
+	DestroyTiles();
+
 	HexGridArray.SetNumZeroed(GridWidth);
 
 	for (int32 i = 0; i < HexGridArray.Num(); i++)
@@ -37,40 +53,63 @@ void AHexManager::BeginPlay()
 			*/
 
 			const bool oddRow = y % 2 == 1;
+			const float xPos = oddRow ? (x * Settings->TileHorizontalOffset) + Settings->oddRowHorizontalOffset : x * Settings->TileHorizontalOffset;
+			const float yPos = y * Settings->TileVerticalOffset;
 
-			const float xPos = oddRow ? (x * TileHorizontalOffset) + oddRowHorizontalOffset : x * TileHorizontalOffset;
-			const float yPos = y * TileVerticalOffset;
-
-			TSubclassOf<AHexTile> tileToSpawn;
+			UInstancedStaticMeshComponent* currentComp = nullptr;
+			float randomHeight = 0;
 
 			if (FMath::RandRange(1.f, 100.f) > ChanceOfWater)
 			{
-				tileToSpawn = GrassTile;
+				currentComp = GrassMeshComp;
+				randomHeight = 1;
 			}
 			else
 			{
-				tileToSpawn = WaterTile;
+				currentComp = WaterMeshComp;
+				randomHeight = -1;
 			}
 
 
-			AHexTile* const newTile = GetWorld()->SpawnActor<AHexTile>(tileToSpawn, FVector(FIntPoint(xPos, yPos)), FRotator::ZeroRotator);
-			if (newTile)
+			if (currentComp)
 			{
-				newTile->TileIndex = FIntPoint(x, y);
-				newTile->SetActorLabel(FString::Printf(TEXT("%d- %d"), x, y));
-				HexGridArray[x][y] = newTile;
+				const FVector spawnLocation = FVector(xPos, yPos, randomHeight * HeightStrength);
+				FString debugText = FString::Printf(TEXT("X: %d, Y: %d"), x, y);
+				currentComp->AddInstance(FTransform(spawnLocation));
+
+				PersistentDebugInfo.Emplace(debugText, spawnLocation);
 			}
+			//if (newTile)
+			//{
+			/*newTile->TileIndex = FIntPoint(x, y);
+			newTile->SetActorLabel(FString::Printf(TEXT("%d- %d"), x, y));
+			HexGridArray[x][y] = newTile;*/
+			//}
 		}
+	}
+	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("You have just changed something from inspector."));
+}
+
+void AHexManager::Tick(float DeltaSeconds)
+{
+	Super::Tick(DeltaSeconds);
+
+	for (const FDebugInfo& DebugInfo : PersistentDebugInfo)
+	{
+		DrawDebugString(GetWorld(), DebugInfo.Location, DebugInfo.Info, nullptr, FColor::White, -1.f);
 	}
 }
 
-void AHexManager::OnConstruction(const FTransform& Transform)
+void AHexManager::DestroyTiles()
 {
-	//// We initialized in the body instead of constructor.
-	//InstanceMeshComp = NewObject<UInstancedStaticMeshComponent>(this);
-	//InstanceMeshComp->RegisterComponent();
-	//InstanceMeshComp->AttachToComponent(RootComponent, FAttachmentTransformRules::KeepRelativeTransform);
-	//InstanceMeshComp->SetStaticMesh(GrassTile->GetDefaultObject());
-	//InstanceMeshComp->AddInstance(FTransform());
-	//UE_LOG(LogTemp, Warning, TEXT("You have just changed something from inspector."));
+	if (WaterMeshComp)
+	{
+		WaterMeshComp->ClearInstances();
+	}
+	if (GrassMeshComp)
+	{
+		GrassMeshComp->ClearInstances();
+	}
+
+	PersistentDebugInfo.Empty();
 }
