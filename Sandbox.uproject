@@ -33,6 +33,10 @@
 			"SupportedTargetPlatforms": [
 				"Win64"
 			]
+		},
+		{
+			"Name": "rts_camera",
+			"Enabled": true
 		}
 	]
 }

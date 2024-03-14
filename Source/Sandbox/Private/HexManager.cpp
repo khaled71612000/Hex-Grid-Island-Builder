@@ -4,24 +4,42 @@
 #include "HexManager.h"
 #include "HexTile.h"
 #include "DrawDebugHelpers.h"
+#include "HexGridSubsystem.h"
 
 AHexManager::AHexManager()
 {
 	//TileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TileMesh"));
 	//TileMesh->SetupAttachment(RootComponent);
 
-	PrimaryActorTick.bCanEverTick = true;
+	PrimaryActorTick.bCanEverTick = false;
 	bRunConstructionScriptOnDrag = false;
 
 	RootComponent = CreateDefaultSubobject<USceneComponent>(TEXT("RootComp"));
 	WaterMeshComp = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("WaterMeshComp"));
 	WaterMeshComp->SetupAttachment(RootComponent);
+	WaterMeshComp->CastShadow = false;
 	GrassMeshComp = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("GrassMeshComp"));
 	GrassMeshComp->SetupAttachment(RootComponent);
+	GrassMeshComp->CastShadow = false;
 	DestroyTiles();
 
 	Settings = GetMutableDefault<UHexGridSettings>();
 	check(Settings);
+
+	//NoiseWrapperLvl1 = CreateDefaultSubobject<UFastNoiseWrapper>(TEXT("fastNoiseWrapper"));
+	//NoiseWrapperLvl1->SetupFastNoise(
+	//	NoiseType,
+	//	Seed,
+	//	Frequency,
+	//	Interp,
+	//	Fractaltype,
+	//	Octaves,
+	//	Lacunarity,
+	//	Gain,
+	//	CellularJitter,
+	//	CellularDistanceFunction,
+	//	CellularReturnType);
+
 }
 
 void AHexManager::BeginPlay()
@@ -31,6 +49,45 @@ void AHexManager::BeginPlay()
 
 void AHexManager::OnConstruction(const FTransform& Transform)
 {
+	Super::OnConstruction(Transform);
+
+	UWorld* world = GetWorld();
+	if (!world)
+	{
+		return;
+	}
+
+	UHexGridSubsystem* subsystem = world->GetSubsystem<UHexGridSubsystem>();
+	if (!subsystem)
+	{
+		return;
+	}
+
+	UFastNoiseWrapper* NoiseWrapperLvl1 = world->GetSubsystem<UHexGridSubsystem>()->NoiseWrapperLvl1;
+
+	if (!NoiseWrapperLvl1)
+	{
+		return;
+	}
+
+	NoiseWrapperLvl1->SetupFastNoise(
+		NoiseType,
+		Seed,
+		Frequency,
+		Interp,
+		Fractaltype,
+		Octaves,
+		Lacunarity,
+		Gain,
+		CellularJitter,
+		CellularDistanceFunction,
+		CellularReturnType);
+
+	if (!NoiseWrapperLvl1->IsInitialized())
+	{
+		return;
+	}
+
 	DestroyTiles();
 
 	HexGridArray.SetNumZeroed(GridWidth);
@@ -58,16 +115,17 @@ void AHexManager::OnConstruction(const FTransform& Transform)
 
 			UInstancedStaticMeshComponent* currentComp = nullptr;
 			float randomHeight = 0;
+			float randomNoise = NoiseWrapperLvl1->GetNoise2D(xPos, yPos);
 
-			if (FMath::RandRange(1.f, 100.f) > ChanceOfWater)
+			if (randomNoise >= 0.f)
 			{
 				currentComp = GrassMeshComp;
-				randomHeight = 1;
+				randomHeight = randomNoise;
 			}
 			else
 			{
 				currentComp = WaterMeshComp;
-				randomHeight = -1;
+				randomHeight = randomNoise * 0.5;
 			}
 
 
@@ -87,18 +145,19 @@ void AHexManager::OnConstruction(const FTransform& Transform)
 			//}
 		}
 	}
+
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("You have just changed something from inspector."));
 }
 
-void AHexManager::Tick(float DeltaSeconds)
-{
-	Super::Tick(DeltaSeconds);
-
-	for (const FDebugInfo& DebugInfo : PersistentDebugInfo)
-	{
-		DrawDebugString(GetWorld(), DebugInfo.Location, DebugInfo.Info, nullptr, FColor::White, -1.f);
-	}
-}
+//void AHexManager::Tick(float DeltaSeconds)
+//{
+//	Super::Tick(DeltaSeconds);
+//
+//	for (const FDebugInfo& DebugInfo : PersistentDebugInfo)
+//	{
+//		DrawDebugString(GetWorld(), DebugInfo.Location, DebugInfo.Info, nullptr, FColor::White, -1.f);
+//	}
+//}
 
 void AHexManager::DestroyTiles()
 {

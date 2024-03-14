@@ -5,6 +5,7 @@
 #include "CoreMinimal.h"
 #include "Components/InstancedStaticMeshComponent.h"
 #include "Subsystems/WorldSubsystem.h"
+#include "../../../../../../../Plugins/Marketplace/FastNoiseGenerator/Source/FastNoiseGenerator/Public/FastNoiseWrapper.h"
 #include "HexGridSubsystem.generated.h"
 
 
@@ -15,5 +16,6 @@ class SANDBOX_API UHexGridSubsystem : public UWorldSubsystem
 
 public:
 	void Initialize(FSubsystemCollectionBase& Collection) override;
+	UFastNoiseWrapper* NoiseWrapperLvl1;
 };
 
