@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "HexManager.h"
 #include "HexTile.h"
 #include "DrawDebugHelpers.h"
@@ -8,9 +5,6 @@
 
 AHexManager::AHexManager()
 {
-	//TileMesh = CreateDefaultSubobject<UStaticMeshComponent>(TEXT("TileMesh"));
-	//TileMesh->SetupAttachment(RootComponent);
-
 	PrimaryActorTick.bCanEverTick = false;
 	bRunConstructionScriptOnDrag = false;
 
@@ -18,28 +12,17 @@ AHexManager::AHexManager()
 	WaterMeshComp = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("WaterMeshComp"));
 	WaterMeshComp->SetupAttachment(RootComponent);
 	WaterMeshComp->CastShadow = false;
+
 	GrassMeshComp = CreateDefaultSubobject<UInstancedStaticMeshComponent>(TEXT("GrassMeshComp"));
 	GrassMeshComp->SetupAttachment(RootComponent);
 	GrassMeshComp->CastShadow = false;
+
+	bRunConstructionScriptOnDrag = false;
+
 	DestroyTiles();
 
 	Settings = GetMutableDefault<UHexGridSettings>();
 	check(Settings);
-
-	//NoiseWrapperLvl1 = CreateDefaultSubobject<UFastNoiseWrapper>(TEXT("fastNoiseWrapper"));
-	//NoiseWrapperLvl1->SetupFastNoise(
-	//	NoiseType,
-	//	Seed,
-	//	Frequency,
-	//	Interp,
-	//	Fractaltype,
-	//	Octaves,
-	//	Lacunarity,
-	//	Gain,
-	//	CellularJitter,
-	//	CellularDistanceFunction,
-	//	CellularReturnType);
-
 }
 
 void AHexManager::BeginPlay()
@@ -51,20 +34,19 @@ void AHexManager::OnConstruction(const FTransform& Transform)
 {
 	Super::OnConstruction(Transform);
 
-	UWorld* world = GetWorld();
-	if (!world)
+	UWorld* World = GetWorld();
+	if (!World)
 	{
 		return;
 	}
 
-	UHexGridSubsystem* subsystem = world->GetSubsystem<UHexGridSubsystem>();
-	if (!subsystem)
+	UHexGridSubsystem* Subsystem = World->GetSubsystem<UHexGridSubsystem>();
+	if (!Subsystem)
 	{
 		return;
 	}
 
-	UFastNoiseWrapper* NoiseWrapperLvl1 = world->GetSubsystem<UHexGridSubsystem>()->NoiseWrapperLvl1;
-
+	UFastNoiseWrapper* NoiseWrapperLvl1 = Subsystem->NoiseWrapperLvl1;
 	if (!NoiseWrapperLvl1)
 	{
 		return;
@@ -81,7 +63,8 @@ void AHexManager::OnConstruction(const FTransform& Transform)
 		Gain,
 		CellularJitter,
 		CellularDistanceFunction,
-		CellularReturnType);
+		CellularReturnType
+	);
 
 	if (!NoiseWrapperLvl1->IsInitialized())
 	{
@@ -89,7 +72,6 @@ void AHexManager::OnConstruction(const FTransform& Transform)
 	}
 
 	DestroyTiles();
-
 	HexGridArray.SetNumZeroed(GridWidth);
 
 	for (int32 i = 0; i < HexGridArray.Num(); i++)
@@ -101,16 +83,8 @@ void AHexManager::OnConstruction(const FTransform& Transform)
 	{
 		for (int32 x = 0; x < GridWidth; x++)
 		{
-
-			/*
-			odd r -> shift row by size to the right or by oddRowHorizontalOffset on the X axis starting second row
-			even r shift row by size to the right or by oddRowHorizontalOffset on the X axis starting first row
-			odd q shift col by size to the up or by oddColHorizontalOffset on the Y axis starting first row
-			even q shift col by size to the up or by oddColHorizontalOffset on the Y axis starting second row
-			*/
-
 			const bool oddRow = y % 2 == 1;
-			const float xPos = oddRow ? (x * Settings->TileHorizontalOffset) + Settings->oddRowHorizontalOffset : x * Settings->TileHorizontalOffset;
+			const float xPos = oddRow ? (x * Settings->TileHorizontalOffset) + Settings->OddRowHorizontalOffset : x * Settings->TileHorizontalOffset;
 			const float yPos = y * Settings->TileVerticalOffset;
 
 			UInstancedStaticMeshComponent* currentComp = nullptr;
@@ -128,7 +102,6 @@ void AHexManager::OnConstruction(const FTransform& Transform)
 				randomHeight = randomNoise * 0.5;
 			}
 
-
 			if (currentComp)
 			{
 				const FVector spawnLocation = FVector(xPos, yPos, randomHeight * HeightStrength);
@@ -137,27 +110,11 @@ void AHexManager::OnConstruction(const FTransform& Transform)
 
 				PersistentDebugInfo.Emplace(debugText, spawnLocation);
 			}
-			//if (newTile)
-			//{
-			/*newTile->TileIndex = FIntPoint(x, y);
-			newTile->SetActorLabel(FString::Printf(TEXT("%d- %d"), x, y));
-			HexGridArray[x][y] = newTile;*/
-			//}
 		}
 	}
 
 	GEngine->AddOnScreenDebugMessage(-1, 5.f, FColor::Yellow, TEXT("You have just changed something from inspector."));
 }
-
-//void AHexManager::Tick(float DeltaSeconds)
-//{
-//	Super::Tick(DeltaSeconds);
-//
-//	for (const FDebugInfo& DebugInfo : PersistentDebugInfo)
-//	{
-//		DrawDebugString(GetWorld(), DebugInfo.Location, DebugInfo.Info, nullptr, FColor::White, -1.f);
-//	}
-//}
 
 void AHexManager::DestroyTiles()
 {

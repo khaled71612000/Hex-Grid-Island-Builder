@@ -1,6 +1,3 @@
-// Fill out your copyright notice in the Description page of Project Settings.
-
-
 #include "HexTile.h"
 
 AHexTile::AHexTile()
@@ -13,5 +10,4 @@ AHexTile::AHexTile()
 void AHexTile::BeginPlay()
 {
 	Super::BeginPlay();
-	
 }
