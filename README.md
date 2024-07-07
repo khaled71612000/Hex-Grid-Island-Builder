@@ -30,6 +30,9 @@
 - **Advanced Noise Configuration:** Configures noise settings such as frequency, interpolation, and fractal type to create varied terrain.
 - **Debug Information:** Provides on-screen debug messages for real-time feedback during development.
 
+## References
+- Red Blob Games: [Hexagonal Grids]([https://www.red3d.com/cwr/boids/](https://www.redblobgames.com/grids/hexagons/))
+
 This project serves as an excellent example for developers looking to create interactive and dynamic grid-based games using Unreal Engine, highlighting the use of procedural generation and advanced game development techniques.
 
 
