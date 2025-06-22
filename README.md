@@ -1,6 +1,9 @@
+![6](https://github.com/khaled71612000/Hex-Grid-Island-Builder/assets/59780800/88cc4501-f635-45b3-89dd-985c1232f028)
+
 # Hex Grid Island Builder
 
 **Hex Grid Island Builder** is an advanced project developed using Unreal Engine, designed to create a grid-based island-building game. This project leverages procedural generation using Perlin noise and features a dynamic, interactive environment with hexagonal grid tiles.
+![download](https://github.com/user-attachments/assets/f3b4a449-98ca-473b-b787-665ff8416430)
 
 ## Key Components
 
@@ -36,7 +39,7 @@
 This project serves as an excellent example for developers looking to create interactive and dynamic grid-based games using Unreal Engine, highlighting the use of procedural generation and advanced game development techniques.
 [YouTube Video](https://youtu.be/gF-XHie0oZw?si=bf95pC5VOy85UbZg)
 
-![6](https://github.com/khaled71612000/Hex-Grid-Island-Builder/assets/59780800/88cc4501-f635-45b3-89dd-985c1232f028)
+
 ![WhatsApp Image 2024-06-18 at 19 12 07_770bb84f](https://github.com/khaled71612000/Grid-island-builder/assets/59780800/62687851-a69f-4842-af90-483244dae448)
 ![image](https://github.com/khaled71612000/Hex-Grid-Island-Builder/assets/59780800/f3f7b843-c2fd-4d04-84e5-787814b309ba)
 ![image](https://github.com/khaled71612000/Hex-Grid-Island-Builder/assets/59780800/cc0612da-0416-42df-9a0e-cbfbf5253d12)
