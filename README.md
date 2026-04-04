@@ -64,6 +64,14 @@ This project serves as an excellent example for developers looking to create int
 ![Screenshot 1](https://raw.githubusercontent.com/khaled71612000/Hex-Grid-Island-Builder/HEAD/PhotoR_Backgrounds.png)
 
 
+
+## Architecture
+
+Key classes and systems (from source code):
+
+- **`Sandbox`** (extends `ModuleRules`) — core game class
+
+
 ## Tech Stack
 
 | Technology | Role |
